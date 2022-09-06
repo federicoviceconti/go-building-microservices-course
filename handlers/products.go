@@ -100,9 +100,16 @@ func (p *ProductHandler) MiddlewareProductsValidation(next http.Handler) http.Ha
 			return
 		}
 
+		validateError := prod.Validate()
+		if validateError != nil {
+			errorMessage := fmt.Sprintf("Product values are not valid %s", validateError)
+			http.Error(writer, errorMessage, http.StatusBadRequest)
+			return
+		}
+
 		ctx := context.WithValue(request.Context(), KeyProduct{}, prod)
 		req := request.WithContext(ctx)
-		
+
 		next.ServeHTTP(writer, req)
 	})
 }
