@@ -59,7 +59,6 @@ func AddProduct(writer http.ResponseWriter, request *http.Request) {
 }
 
 func UpdateProduct(writer http.ResponseWriter, request *http.Request) {
-	println("Handling PUT on /products")
 	r := regexp.MustCompile("/([0-9]+)")
 
 	matches := r.FindAllStringSubmatch(request.URL.Path, -1)
