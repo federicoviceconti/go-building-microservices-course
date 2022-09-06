@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"os"
@@ -13,10 +14,20 @@ import (
 func main() {
 	l := log.New(os.Stdout, "products-api", log.LstdFlags)
 
-	sm := http.NewServeMux()
-	//sm.Handle("/", handlers.NewHello(l))
-	//sm.Handle("/goodbye", handlers.NewGoodbye(l))
-	sm.Handle("/", handlers.NewProductHandler(l))
+	ph := handlers.NewProductHandler(l)
+
+	sm := mux.NewRouter()
+
+	getRouter := sm.Methods("GET").Subrouter()
+	getRouter.HandleFunc("/", ph.GetProducts)
+
+	postRouter := sm.Methods("POST").Subrouter()
+	postRouter.HandleFunc("/", ph.AddProduct)
+	postRouter.Use(ph.MiddlewareProductsValidation)
+
+	putRouter := sm.Methods("PUT").Subrouter()
+	putRouter.HandleFunc("/{id:[0-9]+}", ph.UpdateProduct)
+	putRouter.Use(ph.MiddlewareProductsValidation)
 
 	// Let's create a server, with custom parameters
 	s := http.Server{
@@ -57,25 +68,3 @@ func main() {
 		return
 	}
 }
-
-/**
-// Bind the address for hosting the server
-// ----
-// :9090 		  means: all the ip on the 9090 port
-// 127.0.0.1:9090 means: specific ip on the 9090 port
-// ----
-// The second parameter indicate a ServeMux, in case is nil will be used
-// a DefaultServeMux
-err := http.ListenAndServe(":9090", sm)
-
-// Register the path for the pattern provided. In this case we have the '/' path.
-http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-	handlers.NewHello(log).ServeHttp(writer, request)
-})
-
-// HandleFunc under the hood just map a request to a specific path, giving a response to
-// client.
-http.HandleFunc("/goodbye", func(writer http.ResponseWriter, request *http.Request) {
-	println("Goodbye world!")
-})
-*/
