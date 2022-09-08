@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/go-openapi/runtime/middleware"
+	goHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
@@ -43,10 +44,13 @@ func main() {
 	// We're adding a new handler for the swagger.yaml file looking on the './' directory
 	getRouter.Handle("/swagger.yaml", http.FileServer(http.Dir("./")))
 
+	// We're handling the CORS issue, allowing requests from the port 3000
+	cors := goHandlers.CORS(goHandlers.AllowedOrigins([]string{"http://localhost:3000"}))
+
 	// Let's create a server, with custom parameters
 	s := http.Server{
 		Addr:         ":9090",
-		Handler:      sm,
+		Handler:      cors(sm),
 		ErrorLog:     l,
 		IdleTimeout:  120 * time.Second,
 		ReadTimeout:  1 * time.Second,
