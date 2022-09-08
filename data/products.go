@@ -27,14 +27,14 @@ type Product struct {
 
 func (p *Product) Validate() error {
 	validate := validator.New()
-	err := validate.RegisterValidation("sku-validation", ValidateSKU)
+	err := validate.RegisterValidation("sku-validation", validateSKU)
 	if err != nil {
 		return err
 	}
 	return validate.Struct(p)
 }
 
-func ValidateSKU(fl validator.FieldLevel) bool {
+func validateSKU(fl validator.FieldLevel) bool {
 	re := regexp.MustCompile("[a-z][a-z][a-z]+")
 	matches := re.FindAllString(fl.Field().String(), -1)
 
@@ -50,6 +50,12 @@ func (p Products) ToJson(w io.Writer) error {
 	return e.Encode(p)
 }
 
+// ToJsonSingleProduct it's an easy way to convert the products slice into JSON
+func (p *Product) ToJsonSingleProduct(w io.Writer) error {
+	e := json.NewEncoder(w)
+	return e.Encode(p)
+}
+
 func (p *Product) FromJson(r io.Reader) error {
 	e := json.NewDecoder(r)
 	return e.Decode(p)
@@ -60,14 +66,14 @@ func GetProducts() Products {
 }
 
 func AddProduct(p *Product) {
-	p.Id = GetNextId()
+	p.Id = getNextId()
 	productList = append(productList, p)
 }
 
 func DeleteProductById(id int) bool {
-	index, err := FindProductIndex(id)
+	index, err := findProductIndex(id)
 
-	if index > -1 && err != nil {
+	if index > -1 && err == nil {
 		productList = append(productList[:index], productList[index+1:]...)
 		return true
 	}
@@ -76,24 +82,24 @@ func DeleteProductById(id int) bool {
 }
 
 func UpdateProduct(p *Product, id int) error {
-	product, err := FindProduct(id)
+	product, err := findProduct(id)
 	if err != nil {
 		return err
 	}
 
 	edited := false
 
-	if IsNotEmpty(p.Name) {
+	if isNotEmpty(p.Name) {
 		product.Name = p.Name
 		edited = true
 	}
 
-	if IsNotEmpty(p.Sku) {
+	if isNotEmpty(p.Sku) {
 		product.Sku = p.Sku
 		edited = true
 	}
 
-	if IsNotEmpty(p.Description) {
+	if isNotEmpty(p.Description) {
 		product.Description = p.Description
 		edited = true
 	}
@@ -110,40 +116,40 @@ func UpdateProduct(p *Product, id int) error {
 	return nil
 }
 
-type ProductNotFoundError struct {
+type productNotFoundError struct {
 	message string
 	id      int
 }
 
-func (p ProductNotFoundError) Error() string {
+func (p productNotFoundError) Error() string {
 	return "product not found"
 }
 
-func FindProduct(id int) (*Product, error) {
+func findProduct(id int) (*Product, error) {
 	for _, product := range productList {
 		if product.Id == id {
 			return product, nil
 		}
 	}
 
-	return nil, ProductNotFoundError{"product not found", id}
+	return nil, productNotFoundError{"product not found", id}
 }
 
-func FindProductIndex(id int) (int, error) {
+func findProductIndex(id int) (int, error) {
 	for index, product := range productList {
 		if product.Id == id {
 			return index, nil
 		}
 	}
 
-	return -1, ProductNotFoundError{"product not found", id}
+	return -1, productNotFoundError{"product not found", id}
 }
 
-func IsNotEmpty(value string) bool {
+func isNotEmpty(value string) bool {
 	return len(value) > 0
 }
 
-func GetNextId() int {
+func getNextId() int {
 	lastProduct := productList[len(productList)-1]
 	return lastProduct.Id + 1
 }

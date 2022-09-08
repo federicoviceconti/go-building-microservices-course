@@ -60,9 +60,31 @@ paths:
             schemes:
                 - http
             summary: Delete a product, with the given id.
+        put:
+            consumes:
+                - application/json
+            description: Returns the item updated.
+            operationId: singleProducts
+            parameters:
+                - in: query
+                  name: id
+                  required: true
+                  type: integer
+            produces:
+                - application/json
+            responses:
+                "200":
+                    $ref: '#/responses/productResponse'
+            schemes:
+                - http
+            summary: Update a product, with the given id.
 produces:
     - application / json
 responses:
+    productResponse:
+        description: singleProductResponseWrapper single product item, which returns into response.
+        schema:
+            $ref: '#/definitions/Product'
     productsResponse:
         description: productsResponseWrapper list of products, which returns into response.
         schema:

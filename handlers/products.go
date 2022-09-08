@@ -34,12 +34,20 @@ type productsResponseWrapper struct {
 	Body []data.Product
 }
 
+// singleProductResponseWrapper single product item, which returns into response.
+// swagger:response productResponse
+type singleProductResponseWrapper struct {
+	// The product item
+	// in: body
+	Body data.Product
+}
+
 // swagger:parameters deleteProduct
-type productDeleteParametersWrapper struct {
+type productParametersWrapper struct {
 	// The product id
-	// required: true
 	// in: path
-	id int
+	// required: true
+	Id int `json:"id"`
 }
 
 type ProductHandler struct {
@@ -106,9 +114,9 @@ func (p *ProductHandler) DeleteProduct(writer http.ResponseWriter, request *http
 
 	id, errParse := strconv.Atoi(vars["id"])
 
-	if errParse != nil {
+	if errParse == nil {
 		if !data.DeleteProductById(id) {
-			http.Error(writer, "products does not exists", http.StatusBadRequest)
+			http.Error(writer, "product does not exists", http.StatusBadRequest)
 		}
 	} else {
 		http.Error(writer, "\"id\" field is mandatory on URI. E.g. /{id}", http.StatusBadRequest)
@@ -121,12 +129,36 @@ func (p *ProductHandler) DeleteProduct(writer http.ResponseWriter, request *http
 	}
 }
 
+// swagger:route PUT /products/{id} singleProducts
+//
+// Update a product, with the given id.
+//
+// Returns the item updated.
+//
+//		Consumes:
+//	    - application/json
+//
+//		Produces:
+//	    - application/json
+//
+//		Schemes: http
+//
+//		Parameters:
+//			+	name:id
+//				in: query
+//				type: integer
+//				required: true
+//
+//		Responses:
+//			200: productResponse
+//
+// UpdateProduct update a product from the data source
 func (p *ProductHandler) UpdateProduct(writer http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 
 	id, err := strconv.Atoi(vars["id"])
 
-	if err != nil {
+	if err == nil {
 		prod := request.Context().Value(keyProduct{}).(*data.Product)
 
 		errProduct := data.UpdateProduct(prod, id)
@@ -134,6 +166,12 @@ func (p *ProductHandler) UpdateProduct(writer http.ResponseWriter, request *http
 			message := fmt.Sprintf("Product with id %d not found", id)
 
 			http.Error(writer, message, http.StatusNotFound)
+			return
+		}
+
+		jsonErr := prod.ToJsonSingleProduct(writer)
+		if jsonErr != nil {
+			http.Error(writer, "Update success, but parse gives an error", http.StatusBadRequest)
 			return
 		}
 	} else {
