@@ -8,15 +8,21 @@ import (
 	"time"
 )
 
+// Product defines the structure for the Product API
+// swagger:model
 type Product struct {
-	Id          int     `json:"id,omitempty"`
-	Name        string  `json:"name,omitempty" validate:"required"`
-	Description string  `json:"description,omitempty" validate:"required"`
-	Price       float32 `json:"price,omitempty" validate:"gt=0"`
-	Sku         string  `json:"sku,omitempty" validate:"required,sku-validation"`
-	CreatedOn   string  `json:"-"`
-	UpdatedOn   string  `json:"-"`
-	DeletedOn   string  `json:"-"`
+	Id int `json:"id,omitempty"`
+	// required: true
+	Name string `json:"name,omitempty" validate:"required"`
+	// required: true
+	Description string `json:"description,omitempty" validate:"required"`
+	// the product price
+	// min: 0
+	Price     float32 `json:"price,omitempty" validate:"gt=0"`
+	Sku       string  `json:"sku,omitempty" validate:"required,sku-validation"`
+	CreatedOn string  `json:"-"`
+	UpdatedOn string  `json:"-"`
+	DeletedOn string  `json:"-"`
 }
 
 func (p *Product) Validate() error {
@@ -56,6 +62,17 @@ func GetProducts() Products {
 func AddProduct(p *Product) {
 	p.Id = GetNextId()
 	productList = append(productList, p)
+}
+
+func DeleteProductById(id int) bool {
+	index, err := FindProductIndex(id)
+
+	if index > -1 && err != nil {
+		productList = append(productList[:index], productList[index+1:]...)
+		return true
+	}
+
+	return false
 }
 
 func UpdateProduct(p *Product, id int) error {
@@ -110,6 +127,16 @@ func FindProduct(id int) (*Product, error) {
 	}
 
 	return nil, ProductNotFoundError{"product not found", id}
+}
+
+func FindProductIndex(id int) (int, error) {
+	for index, product := range productList {
+		if product.Id == id {
+			return index, nil
+		}
+	}
+
+	return -1, ProductNotFoundError{"product not found", id}
 }
 
 func IsNotEmpty(value string) bool {

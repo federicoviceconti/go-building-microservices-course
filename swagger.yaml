@@ -1,0 +1,74 @@
+basePath: /
+consumes:
+    - application/json
+definitions:
+    Product:
+        description: Product defines the structure for the Product API
+        properties:
+            description:
+                type: string
+                x-go-name: Description
+            id:
+                format: int64
+                type: integer
+                x-go-name: Id
+            name:
+                type: string
+                x-go-name: Name
+            price:
+                description: the product price
+                format: float
+                minimum: 0
+                type: number
+                x-go-name: Price
+            sku:
+                type: string
+                x-go-name: Sku
+        required:
+            - name
+            - description
+        type: object
+        x-go-package: services/data
+info:
+    description: Documentation for Product API
+    title: Products API.
+    version: 1.0.0
+paths:
+    /products:
+        get:
+            description: Returns a list of products
+            operationId: listProducts
+            responses:
+                "200":
+                    $ref: '#/responses/productsResponse'
+    /products/{id}:
+        delete:
+            consumes:
+                - application/json
+            description: Returns list of products without the deleted one.
+            operationId: listProducts
+            parameters:
+                - in: query
+                  name: id
+                  required: true
+                  type: integer
+            produces:
+                - application/json
+            responses:
+                "200":
+                    $ref: '#/responses/productsResponse'
+            schemes:
+                - http
+            summary: Delete a product, with the given id.
+produces:
+    - application / json
+responses:
+    productsResponse:
+        description: productsResponseWrapper list of products, which returns into response.
+        schema:
+            items:
+                $ref: '#/definitions/Product'
+            type: array
+schemes:
+    - http
+swagger: "2.0"

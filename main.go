@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/go-openapi/runtime/middleware"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
@@ -18,16 +19,29 @@ func main() {
 
 	sm := mux.NewRouter()
 
-	getRouter := sm.Methods("GET").Subrouter()
+	getRouter := sm.Methods(http.MethodGet).Subrouter()
 	getRouter.HandleFunc("/", ph.GetProducts)
 
-	postRouter := sm.Methods("POST").Subrouter()
+	postRouter := sm.Methods(http.MethodPost).Subrouter()
 	postRouter.HandleFunc("/", ph.AddProduct)
 	postRouter.Use(ph.MiddlewareProductsValidation)
 
-	putRouter := sm.Methods("PUT").Subrouter()
+	putRouter := sm.Methods(http.MethodPut).Subrouter()
 	putRouter.HandleFunc("/{id:[0-9]+}", ph.UpdateProduct)
 	putRouter.Use(ph.MiddlewareProductsValidation)
+
+	deleteRouter := sm.Methods(http.MethodDelete).Subrouter()
+	deleteRouter.HandleFunc("/{id:[0-9]+}", ph.DeleteProduct)
+
+	rOpt := middleware.RedocOpts{
+		SpecURL: "/swagger.yaml",
+	}
+	dh := middleware.Redoc(rOpt, nil)
+
+	getRouter.Handle("/docs", dh)
+
+	// We're adding a new handler for the swagger.yaml file looking on the './' directory
+	getRouter.Handle("/swagger.yaml", http.FileServer(http.Dir("./")))
 
 	// Let's create a server, with custom parameters
 	s := http.Server{
