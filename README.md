@@ -11,8 +11,8 @@ The code made by the author is [here](https://github.com/nicholasjackson/buildin
 
 ***What***: A pointer is simply a variable containing the address of another variable.
 
-[Link](https://medium.com/@meeusdylan/when-to-use-pointers-in-go-44c15fe04eac)
-[Link](https://medium.com/@annapeterson89/whats-the-point-of-golang-pointers-everything-you-need-to-know-ac5e40581d4d)
+- [when-to-use-pointers-in-go](https://medium.com/@meeusdylan/when-to-use-pointers-in-go-44c15fe04eac)
+- [whats-the-point-of-golang-pointers-everything-you-need-to-know](https://medium.com/@annapeterson89/whats-the-point-of-golang-pointers-everything-you-need-to-know-ac5e40581d4d)
 
 ```
 // & = generating pointer
